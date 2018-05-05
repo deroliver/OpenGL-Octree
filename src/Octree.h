@@ -79,10 +79,4 @@ private:
 	Octree *m_pOctreeNodes[8];
 };
 
-Vector3 Cross(Vector3 vVector1, Vector3 vVector2);
-
-float Magnitude(Vector3 vNormal);
-
-Vector3 Normalize(Vector3 vVector);
-
 #endif
