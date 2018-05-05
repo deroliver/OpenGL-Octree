@@ -314,12 +314,66 @@ Octree::AssignVerticesToNode(Vector3 *pVertices, int numberOfVerts)
 	g_EndNodeCount++;
 }
 
-Vector3
-Cross(Vector3 vVector1, Vector3 vVector2)
+void
+Octree::DrawOctree(Octree *pNode)
 {
-	Vector3 vNormal;
+	if (!pNode) return;
 
-	vNormal.x = ((vVector1.x * vVector2.z) - (vVector1.z * vVector2.y));
-	vNormal.y = ((vVector1.z * vVector2.x) - (vVector1.x * vVector2.z));
-	vNormal.z = ((vVector1.x * vVector2.y) - (vVector1.y * vVector2.x));
+	if (pNode->IsSubDivided()) {
+		DrawOctree(pNode->m_pOctreeNodes[TOP_LEFT_FRONT]);
+		DrawOctree(pNode->m_pOctreeNodes[TOP_LEFT_BACK]);
+		DrawOctree(pNode->m_pOctreeNodes[TOP_RIGHT_BACK]);
+		DrawOctree(pNode->m_pOctreeNodes[TOP_RIGHT_FRONT]);
+
+		DrawOctree(pNode->m_pOctreeNodes[BOTTOM_LEFT_FRONT]);
+		DrawOctree(pNode->m_pOctreeNodes[BOTTOM_LEFT_BACK]);
+		DrawOctree(pNode->m_pOctreeNodes[BOTTOM_RIGHT_BACK]);
+		DrawOctree(pNode->m_pOctreeNodes[BOTTOM_RIGHT_FRONT]);
+	}
+	else {
+		if (!pNode->m_pVertices) return;
+
+		glBegin(GL_TRIANGLES);
+
+		glColor3ub(0, 255, 0);
+
+		Vector3 *pVertices = pNode->m_pVertices;
+
+		for (int i = 0; i < pNode->GetTriangleCount() * 3; i += 3) {
+			Vector3 vVector1 = pVertices[i + 1] - pVertices[i];
+			Vector3 vVector2 = pVertices[i + 2] - pVertices[i];
+
+			Vector3 vNormal = Cross(vVector1, vVector2);
+
+			vNormal = Normalize(vNormal);
+
+			glNormal3f(vNormal.x, vNormal.y, vNormal.z);
+
+			glVertex3f(pVertices[i].x, pVertices[i].y, pVertices[i].z);
+
+			glVertex3f(pVertices[i + 1].x, pVertices[i + 1].y, pVertices[i + 1].z);
+
+			glVertex3f(pVertices[i + 2].x, pVertices[i + 2].y, pVertices[i + 2].z);
+		}
+
+		glEnd();
+	}
+}
+
+void
+Octree::DestroyOctree()
+{
+	if (m_pVertices) {
+		delete[] m_pVertices;
+		m_pVertices = NULL;
+	}
+
+	for (int i = 0; i < 8; i++) {
+		if (m_pOctreeNodes[i]) {
+			delete m_pOctreeNodes[i];
+			m_pOctreeNodes[i] = NULL;
+		}
+	}
+
+	InitOctree();
 }
